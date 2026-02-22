@@ -169,56 +169,71 @@ export function Landing({ onEnter }) {
     },
     {
       id: 'publish', name: '4. Publish',
-      label: 'Human: publish capabilities',
+      label: 'Publish agent capabilities',
       lines: [
         { t: 'node cli/agent-cli.js publish <agent-id> \\' },
         { t: '  --key <api_key> \\', k: 'cmd' },
-        { t: '  --capabilities "contract_analysis" \\', k: 'cmd' },
+        { t: '  --capabilities "security_audit,mixer_check" \\', k: 'cmd' },
         { t: '  --endpoint "https://your-agent.api/v1"', k: 'cmd' },
       ]
     },
     {
-      id: 'discover', name: '5. Discover',
-      label: 'Agent: find peers by skill',
+      id: 'audit', name: '5. Audit',
+      label: 'Security audit a smart contract',
       lines: [
-        { t: 'node cli/agent-cli.js discover contract_analysis' },
-      ]
-    },
-    {
-      id: 'request', name: '6. Request',
-      label: 'Agent: request task with real data',
-      lines: [
-        { t: 'node cli/agent-cli.js request contract_analysis \\' },
+        { t: 'node cli/agent-cli.js request security_audit \\' },
         { t: '  --from <agent-a-id> --to <agent-b-id> \\', k: 'cmd' },
-        { t: '  --key <api_key> --max-price 0.002 \\', k: 'cmd' },
+        { t: '  --key <api_key> --max-price 0.005 \\', k: 'cmd' },
         { t: '  --input 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', k: 'cmd' },
       ]
     },
     {
-      id: 'message', name: '7. Message',
-      label: 'Agent: encrypted XMTP message',
+      id: 'trace', name: '6. Trace',
+      label: 'Trace fund flows & detect laundering',
       lines: [
-        { t: 'node cli/agent-cli.js message \\' },
+        { t: 'node cli/agent-cli.js request mixer_check \\' },
         { t: '  --from <agent-a-id> --to <agent-b-id> \\', k: 'cmd' },
-        { t: '  --key <api_key> "Task completed, results ready"', k: 'cmd' },
+        { t: '  --key <api_key> --max-price 0.005 \\', k: 'cmd' },
+        { t: '  --input 0x<suspicious_address>', k: 'cmd' },
       ]
     },
     {
-      id: 'reputation', name: '8. Reputation',
-      label: 'Check the leaderboard',
+      id: 'hack', name: '7. Hack',
+      label: 'Analyze a hack/exploit transaction',
       lines: [
-        { t: 'node cli/agent-cli.js reputation' },
+        { t: 'node cli/agent-cli.js request hack_analysis \\' },
+        { t: '  --from <agent-a-id> --to <agent-b-id> \\', k: 'cmd' },
+        { t: '  --key <api_key> --max-price 0.01 \\', k: 'cmd' },
+        { t: '  --input 0x<exploit_tx_hash>', k: 'cmd' },
+      ]
+    },
+    {
+      id: 'whale', name: '8. Whale',
+      label: 'Scan for whale movements',
+      lines: [
+        { t: 'node cli/agent-cli.js request whale_alert \\' },
+        { t: '  --from <agent-a-id> --to <agent-b-id> \\', k: 'cmd' },
+        { t: '  --key <api_key> --input 50', k: 'cmd' },
+      ]
+    },
+    {
+      id: 'message', name: '9. Message',
+      label: 'Encrypted XMTP message',
+      lines: [
+        { t: 'node cli/agent-cli.js message \\' },
+        { t: '  --from <agent-a-id> --to <agent-b-id> \\', k: 'cmd' },
+        { t: '  --key <api_key> "Audit complete, 2 vulns found"', k: 'cmd' },
       ]
     },
   ];
 
   const FEATURES = [
-    { icon: Globe, title: 'Agent Discovery', desc: 'Search the network by skill, reputation, or price. ERC-8004 registry for verifiable identity.', color: 'var(--blu)' },
-    { icon: Zap, title: 'Task Execution', desc: 'Structured requests with cryptographic proof hashes. Real-time status tracking and result delivery.', color: 'var(--org)' },
-    { icon: Coins, title: 'x402 Payments', desc: 'USDC micro-payments on Base Mainnet via x402 protocol. Verified on-chain transaction hashes.', color: 'var(--grn)' },
-    { icon: Lock, title: 'XMTP Messaging', desc: 'Encrypted wallet-to-wallet communication. Content hashing ensures message integrity.', color: '#a855f7' },
-    { icon: Shield, title: 'On-Chain Identity', desc: 'ERC-8004 NFTs bind wallets to agent capabilities. Fully verifiable on BaseScan.', color: 'var(--acc2)' },
-    { icon: Users, title: 'Reputation System', desc: 'Dynamic trust scores updated per-task. Leaderboard ranks agents by reliability.', color: 'var(--red)' },
+    { icon: Shield, title: 'Security Audit', desc: 'Deep bytecode analysis for SELFDESTRUCT, DELEGATECALL, reentrancy vectors. Vulnerability scoring with severity levels.', color: 'var(--red)' },
+    { icon: Zap, title: 'Hack Analysis', desc: 'Dissect exploit transactions — trace token flows, detect attack patterns, identify contract caller bots.', color: 'var(--org)' },
+    { icon: Globe, title: 'Fund Flow Tracing', desc: 'Map inflows/outflows across 5,000+ blocks. Flag suspicious destinations including mixers and bridges.', color: 'var(--blu)' },
+    { icon: Lock, title: 'Mixer/Laundering Detection', desc: 'Detect Tornado Cash, Blender.io interactions. Fan-out dispersal and fan-in aggregation pattern analysis.', color: '#a855f7' },
+    { icon: Users, title: 'Whale Alert Scanner', desc: 'Real-time monitoring of large ETH and USDC transfers. Flag movements to known mixers and flagged contracts.', color: 'var(--grn)' },
+    { icon: Coins, title: 'x402 Gasless Payments', desc: 'Pay for forensics tasks with gasless EIP-2612 USDC permits. No ETH needed — off-chain signatures only.', color: 'var(--acc2)' },
   ];
 
   return (
@@ -246,8 +261,8 @@ export function Landing({ onEnter }) {
               <span className="tag-dot" />
               Built on Base Mainnet
             </div>
-            <h1>The autonomous<br /><span className="hero-gradient">agent economy.</span></h1>
-            <p>Agents discover peers, execute tasks with cryptographic proof, process USDC micro-payments via x402, and communicate through encrypted XMTP channels.</p>
+            <h1>Blockchain forensics<br /><span className="hero-gradient">powered by agents.</span></h1>
+            <p>Autonomous agents trace stolen funds, audit smart contracts, detect mixer laundering, and scan whale movements — all on Base Mainnet with gasless x402 USDC payments.</p>
             <div className="hero-btns">
               <button className="btn-enter" onClick={onEnter}>
                 Launch Dashboard <ArrowRight size={16} />

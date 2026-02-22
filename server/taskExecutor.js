@@ -80,6 +80,60 @@ const KNOWN_SELECTORS = {
 
 const USDC_BASE = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 const WETH_BASE = '0x4200000000000000000000000000000000000006';
+const DAI_BASE = '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb';
+const CBETH_BASE = '0x2Ae3F1Ec7F1F5012CFEab0185bfc7aa3cf0DEc22';
+const USDbC_BASE = '0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA';
+const AERO_BASE = '0x940181a94A35A4569E4529A3CDfB74e38FD98631';
+
+const BASE_TOKENS = {
+  USDC: { address: USDC_BASE, decimals: 6, symbol: 'USDC' },
+  WETH: { address: WETH_BASE, decimals: 18, symbol: 'WETH' },
+  DAI: { address: DAI_BASE, decimals: 18, symbol: 'DAI' },
+  cbETH: { address: CBETH_BASE, decimals: 18, symbol: 'cbETH' },
+  USDbC: { address: USDbC_BASE, decimals: 6, symbol: 'USDbC' },
+  AERO: { address: AERO_BASE, decimals: 18, symbol: 'AERO' },
+};
+
+const CHAINLINK_ETH_USD = '0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70';
+const CHAINLINK_USDC_USD = '0x7e860098F58bBFC8648a4311b374B1D669a2bc6B';
+
+const DANGEROUS_OPCODES = {
+  'ff': 'SELFDESTRUCT',
+  'f4': 'DELEGATECALL',
+  'f2': 'CALLCODE',
+  '3b': 'EXTCODESIZE',
+  '3c': 'EXTCODECOPY',
+  '3f': 'EXTCODEHASH',
+  '55': 'SSTORE',
+  'f0': 'CREATE',
+  'f5': 'CREATE2',
+};
+
+const KNOWN_MIXERS_BRIDGES = {
+  '0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b': { name: 'Tornado Cash Router', type: 'mixer', risk: 'critical' },
+  '0x12D66f87A04A9E220743712cE6d9bB1B5616B8Fc': { name: 'Tornado Cash 0.1 ETH', type: 'mixer', risk: 'critical' },
+  '0x47CE0C6eD5B0Ce3d3A51fdb1C52DC66a7c3c2936': { name: 'Tornado Cash 1 ETH', type: 'mixer', risk: 'critical' },
+  '0x910Cbd523D972eb0a6f4cAe4618aD62622b39DbF': { name: 'Tornado Cash 10 ETH', type: 'mixer', risk: 'critical' },
+  '0xA160cdAB225685dA1d56aa342Ad8841c3b53f291': { name: 'Tornado Cash 100 ETH', type: 'mixer', risk: 'critical' },
+  '0x3ee18B2214AFF97000D974cf647E7C347E8fa585': { name: 'Wormhole Bridge', type: 'bridge', risk: 'medium' },
+  '0x49048044D57e1C92A77f79988d21Fa8fAF36f97B': { name: 'Base Bridge (Official)', type: 'bridge', risk: 'low' },
+  '0x3154Cf16ccdb4C6d922629664174b904d80F2C35': { name: 'Base Portal', type: 'bridge', risk: 'low' },
+  '0x866E82a600A1414e583f7F13623F1aC5d58b0Afa': { name: 'Across Bridge', type: 'bridge', risk: 'low' },
+  '0x1231DEB6f5749EF6cE6943a275A1D3E7486F4EaE': { name: 'LI.FI Diamond', type: 'aggregator', risk: 'low' },
+  '0x2B0d36FACD61B71CC05ab8F3D2B3EE0B5d4793fe': { name: 'Nomad Bridge (Exploited)', type: 'bridge', risk: 'critical' },
+  '0x0000000000A39bb272e79075ade125fd351887Ac': { name: 'Blender.io', type: 'mixer', risk: 'critical' },
+};
+
+const TRANSFER_EVENT_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+
+const KNOWN_DEX_ROUTERS = {
+  '0x2626664c2603336E57B271c5C0b26F421741e481': 'Uniswap V3 Router',
+  '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD': 'Uniswap Universal Router',
+  '0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43': 'Aerodrome Router',
+  '0x6131B5fae19EA4f9D964eAc0408E4408b66337b5': 'KyberSwap',
+  '0x1111111254EEB25477B68fb85Ed929f73A960582': '1inch Router',
+  '0xDef1C0ded9bec7F1a1670819833240f027b25EfF': '0x Exchange Proxy',
+};
 
 async function executeTask(taskType, input) {
   const startTime = Date.now();
@@ -105,12 +159,27 @@ async function executeTask(taskType, input) {
       case 'tx_trace':
         result = await txTrace(input);
         break;
+      case 'fund_trace':
+        result = await fundTrace(input);
+        break;
+      case 'hack_analysis':
+        result = await hackAnalysis(input);
+        break;
+      case 'whale_alert':
+        result = await whaleAlert(input);
+        break;
+      case 'security_audit':
+        result = await securityAudit(input);
+        break;
+      case 'mixer_check':
+        result = await mixerCheck(input);
+        break;
       default:
         result = {
           status: 'completed',
           output: `Task type "${taskType}" executed`,
           input: input || '',
-          note: `Supported types: contract_analysis, token_lookup, wallet_check, gas_estimate, block_info, tx_trace`,
+          note: `Supported types: contract_analysis, token_lookup, wallet_check, gas_estimate, block_info, tx_trace, fund_trace, hack_analysis, whale_alert, security_audit, mixer_check`,
         };
     }
     result.duration_ms = Date.now() - startTime;
@@ -420,6 +489,566 @@ async function txTrace(txHash) {
     logs_count: receipt ? receipt.logs.length : null,
     input_data: `${inputSize.toLocaleString()} bytes`,
     basescan: `https://basescan.org/tx/${txHash}`,
+  };
+}
+
+async function fundTrace(address) {
+  if (!address || !address.startsWith('0x') || address.length !== 42) {
+    return { status: 'failed', error: 'Provide a valid address (0x... 42 chars)' };
+  }
+
+  const currentBlock = await rpcCall('eth_blockNumber');
+  const currentBlockNum = hexToDecimal(currentBlock);
+  const fromBlock = '0x' + Math.max(0, currentBlockNum - 5000).toString(16);
+
+  const paddedAddr = '0x' + address.slice(2).toLowerCase().padStart(64, '0');
+  const [outgoingLogs, incomingLogs, ethBalance, txCount] = await Promise.all([
+    rpcCall('eth_getLogs', [{ fromBlock, toBlock: 'latest', topics: [TRANSFER_EVENT_TOPIC, paddedAddr, null] }]).catch(() => []),
+    rpcCall('eth_getLogs', [{ fromBlock, toBlock: 'latest', topics: [TRANSFER_EVENT_TOPIC, null, paddedAddr] }]).catch(() => []),
+    rpcCall('eth_getBalance', [address, 'latest']),
+    rpcCall('eth_getTransactionCount', [address, 'latest']),
+  ]);
+
+  const outflows = {};
+  const inflows = {};
+  let totalOutValue = 0n;
+  let totalInValue = 0n;
+  const suspiciousDestinations = [];
+
+  for (const log of outgoingLogs) {
+    const to = '0x' + log.topics[2].slice(26);
+    const value = BigInt(log.data || '0x0');
+    if (!outflows[to]) outflows[to] = { count: 0, totalValue: 0n, tokens: new Set() };
+    outflows[to].count++;
+    outflows[to].totalValue += value;
+    outflows[to].tokens.add(log.address.toLowerCase());
+    totalOutValue += value;
+
+    const mixerInfo = KNOWN_MIXERS_BRIDGES[to] || KNOWN_MIXERS_BRIDGES[to.toLowerCase()];
+    if (mixerInfo && mixerInfo.risk === 'critical') {
+      suspiciousDestinations.push({ address: to, ...mixerInfo, tx: log.transactionHash });
+    }
+  }
+
+  for (const log of incomingLogs) {
+    const from = '0x' + log.topics[1].slice(26);
+    const value = BigInt(log.data || '0x0');
+    if (!inflows[from]) inflows[from] = { count: 0, totalValue: 0n, tokens: new Set() };
+    inflows[from].count++;
+    inflows[from].totalValue += value;
+    inflows[from].tokens.add(log.address.toLowerCase());
+    totalInValue += value;
+  }
+
+  const topOutflows = Object.entries(outflows)
+    .sort((a, b) => Number(b[1].totalValue - a[1].totalValue))
+    .slice(0, 10)
+    .map(([addr, d]) => ({
+      address: addr,
+      transfers: d.count,
+      unique_tokens: d.tokens.size,
+      label: KNOWN_MIXERS_BRIDGES[addr]?.name || KNOWN_DEX_ROUTERS[addr] || null,
+      risk: KNOWN_MIXERS_BRIDGES[addr]?.risk || 'unknown',
+    }));
+
+  const topInflows = Object.entries(inflows)
+    .sort((a, b) => Number(b[1].totalValue - a[1].totalValue))
+    .slice(0, 10)
+    .map(([addr, d]) => ({
+      address: addr,
+      transfers: d.count,
+      unique_tokens: d.tokens.size,
+      label: KNOWN_MIXERS_BRIDGES[addr]?.name || KNOWN_DEX_ROUTERS[addr] || null,
+    }));
+
+  const riskScore = suspiciousDestinations.length > 0 ? 'HIGH' :
+    Object.keys(outflows).length > 50 ? 'MEDIUM' : 'LOW';
+
+  return {
+    status: 'completed',
+    chain: 'Base Mainnet',
+    address,
+    eth_balance: `${weiToEth(ethBalance).toFixed(6)} ETH`,
+    total_transactions: hexToDecimal(txCount),
+    blocks_scanned: 5000,
+    scan_range: `${currentBlockNum - 5000} → ${currentBlockNum}`,
+    outgoing_transfers: outgoingLogs.length,
+    incoming_transfers: incomingLogs.length,
+    unique_outflow_addresses: Object.keys(outflows).length,
+    unique_inflow_addresses: Object.keys(inflows).length,
+    top_outflows: topOutflows,
+    top_inflows: topInflows,
+    suspicious_destinations: suspiciousDestinations.length > 0 ? suspiciousDestinations : 'none detected',
+    risk_assessment: riskScore,
+    risk_factors: suspiciousDestinations.length > 0
+      ? `Interacted with ${suspiciousDestinations.length} known mixer/flagged contract(s)`
+      : Object.keys(outflows).length > 50
+        ? 'High volume of unique outflow addresses (possible fund dispersal)'
+        : 'No known risk factors detected',
+    basescan: `https://basescan.org/address/${address}`,
+  };
+}
+
+async function hackAnalysis(txHash) {
+  if (!txHash || !txHash.startsWith('0x') || txHash.length !== 66) {
+    return { status: 'failed', error: 'Provide a valid transaction hash (0x... 66 chars)' };
+  }
+
+  const [tx, receipt] = await Promise.all([
+    rpcCall('eth_getTransactionByHash', [txHash]),
+    rpcCall('eth_getTransactionReceipt', [txHash]),
+  ]);
+
+  if (!tx) return { status: 'failed', error: 'Transaction not found on Base Mainnet' };
+
+  const value = tx.value ? weiToEth(tx.value) : 0;
+  const gasUsed = receipt ? hexToDecimal(receipt.gasUsed) : null;
+  const gasPrice = tx.gasPrice ? Number(BigInt(tx.gasPrice)) / 1e9 : null;
+  const fee = gasUsed && gasPrice ? (gasUsed * gasPrice / 1e9) : null;
+  const success = receipt ? receipt.status === '0x1' : null;
+
+  let methodSig = null;
+  if (tx.input && tx.input.length >= 10) {
+    const selector = tx.input.slice(2, 10);
+    methodSig = KNOWN_SELECTORS[selector] || `0x${selector}`;
+  }
+
+  const tokenTransfers = [];
+  const suspiciousTransfers = [];
+  const uniqueRecipients = new Set();
+
+  if (receipt && receipt.logs) {
+    for (const log of receipt.logs) {
+      if (log.topics[0] === TRANSFER_EVENT_TOPIC && log.topics.length >= 3) {
+        const from = '0x' + log.topics[1].slice(26);
+        const to = '0x' + log.topics[2].slice(26);
+        const rawValue = BigInt(log.data || '0x0');
+        uniqueRecipients.add(to.toLowerCase());
+
+        const transfer = {
+          token: log.address,
+          from: from,
+          to: to,
+          raw_value: rawValue.toString(),
+        };
+
+        const mixerInfo = KNOWN_MIXERS_BRIDGES[to] || KNOWN_MIXERS_BRIDGES[to.toLowerCase()];
+        if (mixerInfo) {
+          transfer.destination_label = mixerInfo.name;
+          transfer.destination_type = mixerInfo.type;
+          transfer.risk = mixerInfo.risk;
+          suspiciousTransfers.push(transfer);
+        }
+
+        const dexInfo = KNOWN_DEX_ROUTERS[to] || KNOWN_DEX_ROUTERS[to.toLowerCase()];
+        if (dexInfo) transfer.destination_label = dexInfo;
+
+        tokenTransfers.push(transfer);
+      }
+    }
+  }
+
+  const attackPatterns = [];
+  const inputSize = tx.input ? (tx.input.length - 2) / 2 : 0;
+
+  if (inputSize > 2000) attackPatterns.push('Large calldata (possible exploit payload)');
+  if (tokenTransfers.length > 5) attackPatterns.push(`Multiple token transfers (${tokenTransfers.length}) in single tx`);
+  if (uniqueRecipients.size > 3) attackPatterns.push(`Funds dispersed to ${uniqueRecipients.size} unique addresses`);
+  if (value > 1) attackPatterns.push(`Large ETH value transferred: ${value.toFixed(4)} ETH`);
+  if (!success) attackPatterns.push('Transaction REVERTED — possible failed exploit attempt');
+  if (suspiciousTransfers.length > 0) attackPatterns.push(`${suspiciousTransfers.length} transfer(s) to known mixers/flagged contracts`);
+  if (gasUsed && gasUsed > 500000) attackPatterns.push(`High gas consumption: ${gasUsed.toLocaleString()} (complex internal execution)`);
+  if (tx.to === null) attackPatterns.push('Contract deployment in this tx (possible attack contract creation)');
+
+  const fromCode = await rpcCall('eth_getCode', [tx.from, 'latest']).catch(() => '0x');
+  const isContractCaller = fromCode && fromCode !== '0x' && fromCode.length > 2;
+  if (isContractCaller) attackPatterns.push('Caller is a smart contract (bot/automated attack)');
+
+  const threatLevel = suspiciousTransfers.length > 0 ? 'CRITICAL' :
+    attackPatterns.length >= 4 ? 'HIGH' :
+      attackPatterns.length >= 2 ? 'MEDIUM' : 'LOW';
+
+  const postTxBalance = await rpcCall('eth_getBalance', [tx.from, 'latest']).catch(() => '0x0');
+
+  return {
+    status: 'completed',
+    chain: 'Base Mainnet',
+    tx_hash: txHash,
+    threat_level: threatLevel,
+    success: success ? 'Yes' : 'No (Reverted)',
+    from: tx.from,
+    from_type: isContractCaller ? 'Smart Contract (Bot/Automated)' : 'EOA (Human Wallet)',
+    to: tx.to || 'Contract Creation',
+    value: `${value.toFixed(6)} ETH`,
+    method: methodSig || (inputSize === 0 ? 'ETH Transfer' : 'Contract Call'),
+    calldata_size: `${inputSize.toLocaleString()} bytes`,
+    gas_used: gasUsed ? gasUsed.toLocaleString() : null,
+    fee: fee ? `${fee.toFixed(8)} ETH` : null,
+    block: tx.blockNumber ? hexToDecimal(tx.blockNumber) : null,
+    token_transfers_count: tokenTransfers.length,
+    token_transfers: tokenTransfers.slice(0, 15),
+    suspicious_transfers: suspiciousTransfers.length > 0 ? suspiciousTransfers : 'none',
+    unique_recipients: uniqueRecipients.size,
+    attack_patterns: attackPatterns.length > 0 ? attackPatterns : ['No suspicious patterns detected'],
+    attacker_current_balance: `${weiToEth(postTxBalance).toFixed(6)} ETH`,
+    event_logs_count: receipt ? receipt.logs.length : 0,
+    basescan: `https://basescan.org/tx/${txHash}`,
+  };
+}
+
+async function whaleAlert(input) {
+  const blocksToScan = Math.min(parseInt(input) || 20, 50);
+  const currentBlock = await rpcCall('eth_blockNumber');
+  const currentBlockNum = hexToDecimal(currentBlock);
+
+  const largeEthTransfers = [];
+  const largeTokenTransfers = [];
+  const blockPromises = [];
+
+  for (let i = 0; i < blocksToScan; i++) {
+    const blockNum = '0x' + (currentBlockNum - i).toString(16);
+    blockPromises.push(rpcCall('eth_getBlockByNumber', [blockNum, true]).catch(() => null));
+  }
+
+  const blocks = await Promise.all(blockPromises);
+
+  for (const block of blocks) {
+    if (!block || !block.transactions) continue;
+    for (const tx of block.transactions) {
+      if (tx.value) {
+        const ethValue = weiToEth(tx.value);
+        if (ethValue >= 1.0) {
+          largeEthTransfers.push({
+            tx_hash: tx.hash,
+            from: tx.from,
+            to: tx.to || 'Contract Creation',
+            value: `${ethValue.toFixed(4)} ETH`,
+            block: hexToDecimal(block.number),
+            timestamp: new Date(hexToDecimal(block.timestamp) * 1000).toISOString(),
+            from_label: KNOWN_MIXERS_BRIDGES[tx.from]?.name || KNOWN_DEX_ROUTERS[tx.from] || null,
+            to_label: KNOWN_MIXERS_BRIDGES[tx.to]?.name || KNOWN_DEX_ROUTERS[tx.to] || null,
+          });
+        }
+      }
+    }
+  }
+
+  const usdcFromBlock = '0x' + (currentBlockNum - blocksToScan).toString(16);
+  const usdcLogs = await rpcCall('eth_getLogs', [{
+    fromBlock: usdcFromBlock,
+    toBlock: 'latest',
+    address: USDC_BASE,
+    topics: [TRANSFER_EVENT_TOPIC],
+  }]).catch(() => []);
+
+  for (const log of usdcLogs) {
+    if (log.topics.length >= 3) {
+      const rawValue = BigInt(log.data || '0x0');
+      const usdcValue = Number(rawValue) / 1e6;
+      if (usdcValue >= 10000) {
+        const from = '0x' + log.topics[1].slice(26);
+        const to = '0x' + log.topics[2].slice(26);
+        largeTokenTransfers.push({
+          tx_hash: log.transactionHash,
+          token: 'USDC',
+          from,
+          to,
+          value: `${usdcValue.toLocaleString()} USDC`,
+          block: hexToDecimal(log.blockNumber),
+          from_label: KNOWN_MIXERS_BRIDGES[from]?.name || KNOWN_DEX_ROUTERS[from] || null,
+          to_label: KNOWN_MIXERS_BRIDGES[to]?.name || KNOWN_DEX_ROUTERS[to] || null,
+        });
+      }
+    }
+  }
+
+  largeEthTransfers.sort((a, b) => parseFloat(b.value) - parseFloat(a.value));
+  largeTokenTransfers.sort((a, b) => {
+    const aVal = parseFloat(a.value.replace(/,/g, ''));
+    const bVal = parseFloat(b.value.replace(/,/g, ''));
+    return bVal - aVal;
+  });
+
+  const suspiciousWhales = [...largeEthTransfers, ...largeTokenTransfers]
+    .filter(t => t.to_label && (KNOWN_MIXERS_BRIDGES[t.to]?.risk === 'critical'));
+
+  return {
+    status: 'completed',
+    chain: 'Base Mainnet',
+    blocks_scanned: blocksToScan,
+    scan_range: `${currentBlockNum - blocksToScan} → ${currentBlockNum}`,
+    large_eth_transfers: largeEthTransfers.slice(0, 20),
+    large_eth_count: largeEthTransfers.length,
+    large_usdc_transfers: largeTokenTransfers.slice(0, 20),
+    large_usdc_count: largeTokenTransfers.length,
+    suspicious_whale_movements: suspiciousWhales.length > 0 ? suspiciousWhales : 'none detected',
+    alert_level: suspiciousWhales.length > 0 ? 'WARNING' : 'NORMAL',
+    total_eth_volume: `${largeEthTransfers.reduce((s, t) => s + parseFloat(t.value), 0).toFixed(4)} ETH`,
+  };
+}
+
+async function securityAudit(address) {
+  if (!address || !address.startsWith('0x')) {
+    address = USDC_BASE;
+  }
+
+  const [code, balance, txCount] = await Promise.all([
+    rpcCall('eth_getCode', [address, 'latest']),
+    rpcCall('eth_getBalance', [address, 'latest']),
+    rpcCall('eth_getTransactionCount', [address, 'latest']),
+  ]);
+
+  if (!code || code === '0x' || code.length <= 2) {
+    return { status: 'completed', chain: 'Base Mainnet', address, verdict: 'Not a contract (EOA wallet)', risk: 'N/A' };
+  }
+
+  const bytecodeHex = code.slice(2).toLowerCase();
+  const codeSize = bytecodeHex.length / 2;
+  const vulnerabilities = [];
+  const warnings = [];
+  const info = [];
+
+  for (const [opcode, name] of Object.entries(DANGEROUS_OPCODES)) {
+    let count = 0;
+    for (let i = 0; i < bytecodeHex.length - 1; i += 2) {
+      if (bytecodeHex.slice(i, i + 2) === opcode) count++;
+    }
+    if (count > 0) {
+      if (name === 'SELFDESTRUCT') {
+        vulnerabilities.push({ opcode: name, count, severity: 'CRITICAL', detail: 'Contract can be destroyed, funds at risk' });
+      } else if (name === 'DELEGATECALL') {
+        vulnerabilities.push({ opcode: name, count, severity: 'HIGH', detail: 'Proxy pattern or possible storage collision attack vector' });
+      } else if (name === 'CALLCODE') {
+        vulnerabilities.push({ opcode: name, count, severity: 'HIGH', detail: 'Deprecated opcode, potential reentrancy vector' });
+      } else if (name === 'CREATE2') {
+        warnings.push({ opcode: name, count, severity: 'MEDIUM', detail: 'Deterministic deployment — can redeploy different bytecode at same address' });
+      } else if (name === 'CREATE') {
+        warnings.push({ opcode: name, count, severity: 'LOW', detail: 'Creates child contracts' });
+      } else {
+        info.push({ opcode: name, count });
+      }
+    }
+  }
+
+  const detectedFns = [];
+  for (const [sel, fn] of Object.entries(KNOWN_SELECTORS)) {
+    if (bytecodeHex.includes(sel)) detectedFns.push(fn);
+  }
+
+  const hasOwner = detectedFns.includes('owner()');
+  const hasTransferOwnership = detectedFns.includes('transferOwnership(address)');
+  const hasRenounceOwnership = detectedFns.includes('renounceOwnership()');
+  const hasPaused = detectedFns.includes('paused()');
+  const hasPermit = detectedFns.includes('permit(address,address,uint256,uint256,uint8,bytes32,bytes32)');
+
+  if (hasOwner && !hasRenounceOwnership) {
+    warnings.push({ pattern: 'Centralized Ownership', severity: 'MEDIUM', detail: 'Owner can control contract but cannot renounce ownership' });
+  }
+  if (hasPaused) {
+    warnings.push({ pattern: 'Pausable', severity: 'LOW', detail: 'Contract can be paused by admin, freezing user funds' });
+  }
+  if (hasPermit) {
+    info.push({ pattern: 'EIP-2612 Permit', detail: 'Supports gasless approvals — verify permit implementation is correct' });
+  }
+
+  const isProxy = vulnerabilities.some(v => v.opcode === 'DELEGATECALL') && codeSize < 1000;
+  if (isProxy) {
+    warnings.push({ pattern: 'Proxy Contract', severity: 'MEDIUM', detail: 'Likely a proxy — implementation can be changed by admin' });
+  }
+
+  if (codeSize > 24576) {
+    warnings.push({ pattern: 'Large Contract', severity: 'LOW', detail: `${codeSize.toLocaleString()} bytes — near or exceeds EIP-170 limit (24,576 bytes)` });
+  }
+
+  const riskScore = vulnerabilities.length > 0 ? 'HIGH' :
+    warnings.filter(w => w.severity === 'MEDIUM' || w.severity === 'HIGH').length >= 2 ? 'MEDIUM' : 'LOW';
+
+  let ownerAddress = null;
+  if (hasOwner) {
+    try {
+      const ownerResult = await rpcCall('eth_call', [{ to: address, data: '0x8da5cb5b' }, 'latest']);
+      if (ownerResult && ownerResult.length >= 66) {
+        ownerAddress = '0x' + ownerResult.slice(26);
+      }
+    } catch {}
+  }
+
+  return {
+    status: 'completed',
+    chain: 'Base Mainnet',
+    address,
+    contract_size: `${codeSize.toLocaleString()} bytes`,
+    eth_balance: `${weiToEth(balance).toFixed(6)} ETH`,
+    risk_score: riskScore,
+    is_proxy: isProxy,
+    owner: ownerAddress || 'N/A',
+    has_ownership_control: hasOwner,
+    can_renounce_ownership: hasRenounceOwnership,
+    is_pausable: hasPaused,
+    has_permit: hasPermit,
+    vulnerabilities: vulnerabilities.length > 0 ? vulnerabilities : 'none detected',
+    warnings: warnings.length > 0 ? warnings : 'none',
+    info,
+    detected_functions: detectedFns,
+    function_count: detectedFns.length,
+    verdict: vulnerabilities.length > 0
+      ? `CAUTION: ${vulnerabilities.length} critical/high vulnerability pattern(s) detected`
+      : warnings.length > 0
+        ? `${warnings.length} warning(s) found — review recommended`
+        : 'No known vulnerability patterns detected',
+    basescan: `https://basescan.org/address/${address}`,
+  };
+}
+
+async function mixerCheck(address) {
+  if (!address || !address.startsWith('0x') || address.length !== 42) {
+    return { status: 'failed', error: 'Provide a valid address (0x... 42 chars)' };
+  }
+
+  const currentBlock = await rpcCall('eth_blockNumber');
+  const currentBlockNum = hexToDecimal(currentBlock);
+  const fromBlock = '0x' + Math.max(0, currentBlockNum - 10000).toString(16);
+  const paddedAddr = '0x' + address.slice(2).toLowerCase().padStart(64, '0');
+
+  const [outgoingLogs, incomingLogs, ethBalance, txCount, code] = await Promise.all([
+    rpcCall('eth_getLogs', [{ fromBlock, toBlock: 'latest', topics: [TRANSFER_EVENT_TOPIC, paddedAddr, null] }]).catch(() => []),
+    rpcCall('eth_getLogs', [{ fromBlock, toBlock: 'latest', topics: [TRANSFER_EVENT_TOPIC, null, paddedAddr] }]).catch(() => []),
+    rpcCall('eth_getBalance', [address, 'latest']),
+    rpcCall('eth_getTransactionCount', [address, 'latest']),
+    rpcCall('eth_getCode', [address, 'latest']),
+  ]);
+
+  const isContract = code && code !== '0x' && code.length > 2;
+
+  const mixerInteractions = [];
+  const bridgeInteractions = [];
+  const dexInteractions = [];
+  const allCounterparties = new Set();
+
+  const checkAddress = (addr, log, direction) => {
+    allCounterparties.add(addr.toLowerCase());
+    const mixerInfo = KNOWN_MIXERS_BRIDGES[addr] || KNOWN_MIXERS_BRIDGES[addr.toLowerCase()];
+    if (mixerInfo) {
+      const entry = {
+        address: addr,
+        name: mixerInfo.name,
+        type: mixerInfo.type,
+        risk: mixerInfo.risk,
+        direction,
+        tx: log.transactionHash,
+        block: hexToDecimal(log.blockNumber),
+      };
+      if (mixerInfo.type === 'mixer') mixerInteractions.push(entry);
+      else bridgeInteractions.push(entry);
+    }
+    const dexInfo = KNOWN_DEX_ROUTERS[addr] || KNOWN_DEX_ROUTERS[addr.toLowerCase()];
+    if (dexInfo) {
+      dexInteractions.push({
+        address: addr,
+        name: dexInfo,
+        direction,
+        tx: log.transactionHash,
+        block: hexToDecimal(log.blockNumber),
+      });
+    }
+  };
+
+  for (const log of outgoingLogs) {
+    if (log.topics.length >= 3) {
+      const to = '0x' + log.topics[2].slice(26);
+      checkAddress(to, log, 'outgoing');
+    }
+  }
+  for (const log of incomingLogs) {
+    if (log.topics.length >= 3) {
+      const from = '0x' + log.topics[1].slice(26);
+      checkAddress(from, log, 'incoming');
+    }
+  }
+
+  const rapidTransfers = [];
+  const txsByBlock = {};
+  for (const log of [...outgoingLogs, ...incomingLogs]) {
+    const block = hexToDecimal(log.blockNumber);
+    if (!txsByBlock[block]) txsByBlock[block] = [];
+    txsByBlock[block].push(log);
+    if (txsByBlock[block].length >= 3) {
+      rapidTransfers.push({ block, transfer_count: txsByBlock[block].length });
+    }
+  }
+
+  const laundering_patterns = [];
+  if (mixerInteractions.length > 0) {
+    laundering_patterns.push({
+      pattern: 'Mixer Usage',
+      severity: 'CRITICAL',
+      detail: `${mixerInteractions.length} interaction(s) with known mixing services`,
+      instances: mixerInteractions,
+    });
+  }
+
+  const uniqueOut = new Set(outgoingLogs.map(l => '0x' + l.topics[2]?.slice(26))).size;
+  if (uniqueOut > 20) {
+    laundering_patterns.push({
+      pattern: 'Fund Dispersal (Fan-out)',
+      severity: 'HIGH',
+      detail: `Funds sent to ${uniqueOut} unique addresses — possible laundering dispersal`,
+    });
+  }
+
+  const uniqueIn = new Set(incomingLogs.map(l => '0x' + l.topics[1]?.slice(26))).size;
+  if (uniqueIn > 20 && uniqueOut <= 3) {
+    laundering_patterns.push({
+      pattern: 'Fund Aggregation (Fan-in)',
+      severity: 'HIGH',
+      detail: `Received from ${uniqueIn} addresses but only sent to ${uniqueOut} — possible aggregation before laundering`,
+    });
+  }
+
+  if (rapidTransfers.length > 0) {
+    laundering_patterns.push({
+      pattern: 'Rapid Sequential Transfers',
+      severity: 'MEDIUM',
+      detail: `${rapidTransfers.length} block(s) with 3+ transfers — automated movement pattern`,
+    });
+  }
+
+  if (bridgeInteractions.length > 2) {
+    laundering_patterns.push({
+      pattern: 'Multi-Bridge Usage',
+      severity: 'MEDIUM',
+      detail: `${bridgeInteractions.length} bridge interactions — possible cross-chain laundering`,
+    });
+  }
+
+  const riskLevel = mixerInteractions.length > 0 ? 'CRITICAL' :
+    laundering_patterns.some(p => p.severity === 'HIGH') ? 'HIGH' :
+      laundering_patterns.length > 0 ? 'MEDIUM' : 'LOW';
+
+  return {
+    status: 'completed',
+    chain: 'Base Mainnet',
+    address,
+    address_type: isContract ? 'Smart Contract' : 'EOA (Wallet)',
+    eth_balance: `${weiToEth(ethBalance).toFixed(6)} ETH`,
+    total_transactions: hexToDecimal(txCount),
+    blocks_scanned: 10000,
+    scan_range: `${currentBlockNum - 10000} → ${currentBlockNum}`,
+    total_token_transfers: outgoingLogs.length + incomingLogs.length,
+    unique_counterparties: allCounterparties.size,
+    risk_level: riskLevel,
+    mixer_interactions: mixerInteractions.length > 0 ? mixerInteractions : 'none detected',
+    bridge_interactions: bridgeInteractions.length > 0 ? bridgeInteractions : 'none detected',
+    dex_interactions: dexInteractions.length > 0 ? dexInteractions.slice(0, 10) : 'none detected',
+    laundering_patterns: laundering_patterns.length > 0 ? laundering_patterns : 'no suspicious patterns detected',
+    verdict: riskLevel === 'CRITICAL'
+      ? 'FLAGGED: Direct mixer interaction detected — high probability of illicit fund movement'
+      : riskLevel === 'HIGH'
+        ? 'SUSPICIOUS: Fund dispersal/aggregation patterns consistent with laundering'
+        : riskLevel === 'MEDIUM'
+          ? 'MONITOR: Some suspicious patterns detected — further investigation recommended'
+          : 'CLEAN: No known laundering patterns detected in scanned range',
+    basescan: `https://basescan.org/address/${address}`,
   };
 }
 

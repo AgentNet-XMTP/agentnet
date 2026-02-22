@@ -81,12 +81,17 @@ async function signGaslessPermit(privateKey, ownerAddress, spenderAddress, amoun
 }
 
 const TASK_TYPES = {
-  contract_analysis: { label: 'Contract Analysis', inputHint: 'contract address (0x...)', example: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' },
-  token_lookup:      { label: 'Token Lookup',      inputHint: 'token address or name (usdc, weth)', example: 'usdc' },
-  wallet_check:      { label: 'Wallet Check',      inputHint: 'wallet address (0x...)', example: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' },
-  gas_estimate:      { label: 'Gas Estimate',       inputHint: 'none required', example: '' },
-  block_info:        { label: 'Block Info',         inputHint: 'block number (optional)', example: 'latest' },
-  tx_trace:          { label: 'Transaction Trace',  inputHint: 'transaction hash (0x...)', example: '0x...' },
+  contract_analysis: { label: 'Contract Analysis',     inputHint: 'contract address (0x...)', example: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', category: 'basic' },
+  token_lookup:      { label: 'Token Lookup',           inputHint: 'token address or name (usdc, weth)', example: 'usdc', category: 'basic' },
+  wallet_check:      { label: 'Wallet Check',           inputHint: 'wallet address (0x...)', example: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', category: 'basic' },
+  gas_estimate:      { label: 'Gas Estimate',            inputHint: 'none required', example: '', category: 'basic' },
+  block_info:        { label: 'Block Info',              inputHint: 'block number (optional)', example: 'latest', category: 'basic' },
+  tx_trace:          { label: 'Transaction Trace',       inputHint: 'transaction hash (0x...)', example: '0x...', category: 'basic' },
+  fund_trace:        { label: 'Fund Flow Trace',         inputHint: 'address to trace (0x...)', example: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', category: 'forensics' },
+  hack_analysis:     { label: 'Hack/Exploit Analysis',   inputHint: 'suspicious tx hash (0x...)', example: '0x...', category: 'forensics' },
+  whale_alert:       { label: 'Whale Alert Scanner',     inputHint: 'blocks to scan (default: 20)', example: '30', category: 'forensics' },
+  security_audit:    { label: 'Security Audit',          inputHint: 'contract address (0x...)', example: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', category: 'forensics' },
+  mixer_check:       { label: 'Mixer/Laundering Check',  inputHint: 'address to investigate (0x...)', example: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', category: 'forensics' },
 };
 
 function printResult(result, indent = '  ') {
@@ -133,18 +138,28 @@ async function request(api, args) {
     console.log('    --max-price <amount> Maximum USDC to pay (default: 0.001)');
     console.log('    --key <api_key>      Your agent API key');
     console.log('');
-    console.log('  Available task types with real blockchain data:');
+    console.log('  ── Basic Blockchain Tasks ──');
     for (const [type, info] of Object.entries(TASK_TYPES)) {
-      console.log(`    ${type.padEnd(22)} ${info.label} — input: ${info.inputHint}`);
+      if (info.category === 'basic') console.log(`    ${type.padEnd(22)} ${info.label} — ${info.inputHint}`);
+    }
+    console.log('');
+    console.log('  ── Advanced Forensics Tasks ──');
+    for (const [type, info] of Object.entries(TASK_TYPES)) {
+      if (info.category === 'forensics') console.log(`    ${type.padEnd(22)} ${info.label} — ${info.inputHint}`);
     }
     console.log('');
     console.log('  Payment: Gasless EIP-2612 USDC permit (no ETH needed for gas)');
     console.log('');
-    console.log('  Examples:');
+    console.log('  Examples (Basic):');
     console.log('    agentnet request contract_analysis --from 1 --to 2 --key a2a_... --input 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913');
     console.log('    agentnet request token_lookup --from 1 --to 2 --key a2a_... --input usdc');
-    console.log('    agentnet request wallet_check --from 1 --to 2 --key a2a_... --input 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045');
-    console.log('    agentnet request gas_estimate --from 1 --to 2 --key a2a_...');
+    console.log('');
+    console.log('  Examples (Forensics):');
+    console.log('    agentnet request fund_trace --from 1 --to 2 --key a2a_... --input 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913');
+    console.log('    agentnet request hack_analysis --from 1 --to 2 --key a2a_... --input 0x<tx_hash>');
+    console.log('    agentnet request whale_alert --from 1 --to 2 --key a2a_... --input 30');
+    console.log('    agentnet request security_audit --from 1 --to 2 --key a2a_... --input 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913');
+    console.log('    agentnet request mixer_check --from 1 --to 2 --key a2a_... --input 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045');
     console.log('');
     return;
   }

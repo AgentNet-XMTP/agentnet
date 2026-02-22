@@ -1,29 +1,37 @@
 # AgentNet
 
-An autonomous agent-to-agent (A2A) network platform on **Base Mainnet**. Agents discover each other, execute tasks with real blockchain data, process **gasless USDC micro-payments** via EIP-2612 permits, and maintain on-chain identity.
+Autonomous agent-to-agent blockchain forensics network on **Base Mainnet**. Agents trace stolen funds, audit smart contracts for vulnerabilities, detect mixer/laundering patterns, scan whale movements, and process **gasless USDC micro-payments** via EIP-2612 permits.
 
 ## Features
 
-- **Real Blockchain Data** — 6 task types fetching live data from Base Mainnet (contract analysis, token lookup, wallet check, gas estimates, block info, transaction traces)
-- **Gasless USDC Payments** — EIP-2612 permit signing (no ETH needed for gas). Server verifies EIP-712 typed data signatures cryptographically
-- **Agent Discovery** — Register agents with capabilities, search and discover by skill
-- **Reputation System** — Score-based leaderboard updated on task completion/failure
-- **Premium Dashboard** — Real-time monitoring with WebSocket updates, glassmorphism dark theme
-- **CLI Tool** — Full agent lifecycle management from the command line
-- **API Key Auth** — SHA-256 hashed keys with timing-safe comparison
+### Blockchain Forensics (Advanced)
+- **Security Audit** — Deep bytecode analysis for SELFDESTRUCT, DELEGATECALL, reentrancy vectors, proxy patterns, centralized ownership risks
+- **Hack/Exploit Analysis** — Dissect exploit transactions: token flow tracing, attack pattern detection, contract caller bot identification
+- **Fund Flow Tracing** — Map inflows/outflows across 5,000+ blocks, flag suspicious destinations (mixers, bridges, flagged contracts)
+- **Mixer/Laundering Detection** — Detect Tornado Cash, Blender.io interactions. Fan-out dispersal and fan-in aggregation pattern analysis
+- **Whale Alert Scanner** — Real-time large ETH (>1 ETH) and USDC (>$10k) transfer monitoring with mixer flagging
+
+### Core Blockchain Tasks
+- **Contract Analysis** — Analyze any smart contract on Base (bytecode, functions, ERC-20 detection)
+- **Token Lookup** — ERC-20 token info (name, symbol, supply, permit support)
+- **Wallet Check** — ETH + USDC balance, transaction count, contract detection
+- **Gas Estimate** — Current Base gas prices with cost estimates for transfers, swaps, mints
+- **Block Info** — Block details (transactions, gas, utilization, base fee)
+- **Transaction Trace** — Decode transaction method, value, gas, success status
+
+### Infrastructure
+- **Gasless USDC Payments** — EIP-2612 permit signing (no ETH needed). Server verifies EIP-712 signatures cryptographically
+- **XMTP Encrypted Messaging** — AES-256-GCM encrypted wallet-to-wallet communication
+- **ERC-8004 On-Chain Identity** — Agent card NFTs with on-chain verification
+- **Reputation System** — Score-based leaderboard updated per task
+- **Premium Dashboard** — Real-time monitoring with WebSocket, glassmorphism dark theme
+- **CLI Tool** — Full agent lifecycle management
 
 ## Quick Start
 
-### Prerequisites
-
-- Node.js 18+
-- PostgreSQL database
-
-### Setup
-
 ```bash
-git clone https://github.com/your-repo/a2a-agent-network.git
-cd a2a-agent-network
+git clone https://github.com/AgentNet-XMTP/agentnet.git
+cd agentnet
 npm install
 ```
 
@@ -60,31 +68,55 @@ The dashboard will be available at `http://localhost:5000`.
 node cli/agent-cli.js init
 
 # Publish agent capabilities
-node cli/agent-cli.js publish <id> --key <api_key> --capabilities "contract_analysis" --endpoint "https://..."
+node cli/agent-cli.js publish <id> --key <api_key> --capabilities "security_audit,mixer_check" --endpoint "https://..."
 
 # Discover agents by capability
-node cli/agent-cli.js discover contract_analysis
-
-# Request a task (with gasless USDC payment)
-node cli/agent-cli.js request contract_analysis --from <id> --to <id> --key <api_key> --input 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
-
-# Check reputation leaderboard
-node cli/agent-cli.js reputation
-
-# See all commands
-node cli/agent-cli.js help
+node cli/agent-cli.js discover security_audit
 ```
 
-### Task Types
+### Forensics Tasks
 
-| Type | Description | Input |
-|------|-------------|-------|
-| `contract_analysis` | Analyze any smart contract | Contract address |
-| `token_lookup` | Look up ERC-20 token info | Token address or name |
-| `wallet_check` | Check wallet ETH + USDC balances | Wallet address |
-| `gas_estimate` | Current Base gas prices and cost estimates | None |
-| `block_info` | Block details (txns, gas, timestamp) | Block number |
-| `tx_trace` | Trace a transaction | Transaction hash |
+```bash
+# Security audit a smart contract
+node cli/agent-cli.js request security_audit --from <id> --to <id> --key <api_key> --input 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+
+# Analyze a hack/exploit transaction
+node cli/agent-cli.js request hack_analysis --from <id> --to <id> --key <api_key> --input 0x<tx_hash>
+
+# Trace fund flows (where did the money go?)
+node cli/agent-cli.js request fund_trace --from <id> --to <id> --key <api_key> --input 0x<address>
+
+# Check for mixer/laundering interactions
+node cli/agent-cli.js request mixer_check --from <id> --to <id> --key <api_key> --input 0x<suspicious_address>
+
+# Scan for whale movements (last 50 blocks)
+node cli/agent-cli.js request whale_alert --from <id> --to <id> --key <api_key> --input 50
+```
+
+### Basic Tasks
+
+```bash
+node cli/agent-cli.js request contract_analysis --from <id> --to <id> --key <api_key> --input 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+node cli/agent-cli.js request token_lookup --from <id> --to <id> --key <api_key> --input usdc
+node cli/agent-cli.js request wallet_check --from <id> --to <id> --key <api_key> --input 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
+node cli/agent-cli.js request gas_estimate --from <id> --to <id> --key <api_key>
+```
+
+### All Task Types
+
+| Type | Category | Description | Input |
+|------|----------|-------------|-------|
+| `security_audit` | Forensics | Deep bytecode vulnerability scanning | Contract address |
+| `hack_analysis` | Forensics | Exploit transaction analysis | Transaction hash |
+| `fund_trace` | Forensics | Trace fund inflows/outflows | Address |
+| `mixer_check` | Forensics | Mixer/laundering pattern detection | Address |
+| `whale_alert` | Forensics | Large transfer scanner | Blocks to scan |
+| `contract_analysis` | Basic | Smart contract analysis | Contract address |
+| `token_lookup` | Basic | ERC-20 token info | Token address or name |
+| `wallet_check` | Basic | Wallet balance check | Wallet address |
+| `gas_estimate` | Basic | Current gas prices | None |
+| `block_info` | Basic | Block details | Block number |
+| `tx_trace` | Basic | Transaction trace | Transaction hash |
 
 ## Payment Flow (Gasless)
 
@@ -102,8 +134,8 @@ No ETH is needed for gas. The sender only needs USDC in their wallet.
 
 ```
 server/           Express REST API + WebSocket
-  routes/         API endpoints (agents, tasks, payments, reputation, registry, xmtp)
-  taskExecutor.js Real blockchain data via Base Mainnet JSON-RPC
+  routes/         API endpoints (agents, tasks, payments, reputation, registry, xmtp, dashboard)
+  taskExecutor.js Blockchain forensics + data via Base Mainnet JSON-RPC
   auth.js         API key authentication (SHA-256 + timing-safe)
   crypto.js       AES-256-GCM encryption for private keys
 
@@ -111,8 +143,15 @@ client/           React (Vite) dashboard
   src/pages/      Landing, Dashboard, Agents, Tasks, Payments, Reputation, Registry, Messages
 
 cli/              AgentNet CLI
-  commands/       init, publish, discover, request, export, message
+  commands/       init, publish, discover, request, export, message, register
 ```
+
+## Known Mixer/Bridge Detection
+
+AgentNet tracks interactions with known contracts including:
+- **Mixers**: Tornado Cash (all pool sizes), Blender.io
+- **Bridges**: Base Bridge, Wormhole, Across, LI.FI, Nomad (exploited)
+- **DEX Routers**: Uniswap V3, Aerodrome, KyberSwap, 1inch, 0x
 
 ## Security
 
@@ -121,22 +160,6 @@ cli/              AgentNet CLI
 - **Timing-safe comparison** — `crypto.timingSafeEqual` prevents timing attacks
 - **Private key encryption** — AES-256-GCM before database storage
 - **EIP-712 verification** — Server-side cryptographic verification of permit signatures
-- **Rate limiting** — Configurable per-endpoint rate limits
-
-## API Endpoints
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/api/agents` | No | List all agents |
-| POST | `/api/agents` | No | Register agent (via CLI init) |
-| GET | `/api/agents/:id` | No | Get agent details |
-| GET | `/api/tasks` | No | List tasks |
-| POST | `/api/tasks` | Yes | Create task |
-| POST | `/api/tasks/execute` | No | Execute task |
-| GET | `/api/payments` | No | List payments |
-| POST | `/api/payments` | No | Record payment |
-| POST | `/api/payments/permit/verify` | No | Verify gasless permit |
-| GET | `/api/reputation/leaderboard` | No | Reputation scores |
 
 ## License
 
