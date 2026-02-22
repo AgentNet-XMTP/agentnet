@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { api } from '../api';
+import { api, parseCaps } from '../api';
 import { Shield } from 'lucide-react';
 
 export function Registry() {
@@ -63,7 +63,7 @@ export function Registry() {
                       <td><strong>{entry.agent_name}</strong></td>
                       <td><span className="wallet-addr">{entry.wallet_address ? `${entry.wallet_address.slice(0, 6)}...${entry.wallet_address.slice(-4)}` : '-'}</span></td>
                       <td><span className="proof-hash">{entry.nft_token_id || '-'}</span></td>
-                      <td>{(entry.capabilities || []).map(c => <span key={c} className="capability-tag">{c}</span>)}</td>
+                      <td>{parseCaps(entry.capabilities).map(c => <span key={c} className="capability-tag">{c}</span>)}</td>
                       <td><span className={`badge badge-${entry.status}`}>{entry.status}</span></td>
                       <td style={{fontSize: 12, color: 'var(--text-muted)'}}>{new Date(entry.registered_at).toLocaleDateString()}</td>
                     </tr>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { api } from '../api';
+import { api, parseCaps } from '../api';
 import { useWebSocket } from '../useWebSocket';
 import { Search, Bot, RefreshCw, ExternalLink, Copy } from 'lucide-react';
 
@@ -118,8 +118,8 @@ export function Agents() {
                       ) : '-'}
                     </td>
                     <td>
-                      {(agent.capabilities || []).length > 0
-                        ? agent.capabilities.map(c => <span key={c} className="capability-tag">{c}</span>)
+                      {parseCaps(agent.capabilities).length > 0
+                        ? parseCaps(agent.capabilities).map(c => <span key={c} className="capability-tag">{c}</span>)
                         : <span style={{color:'var(--text-muted)',fontSize:12}}>none</span>
                       }
                     </td>

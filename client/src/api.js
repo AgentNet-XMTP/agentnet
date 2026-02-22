@@ -1,5 +1,16 @@
 const BASE = '/api';
 
+export function parseCaps(caps) {
+  if (!caps) return [];
+  if (Array.isArray(caps)) return caps;
+  if (typeof caps === 'string') {
+    const trimmed = caps.replace(/^\{|}$/g, '').trim();
+    if (!trimmed) return [];
+    return trimmed.split(',').map(c => c.trim()).filter(Boolean);
+  }
+  return [];
+}
+
 async function fetchJSON(path) {
   const res = await fetch(`${BASE}${path}`);
   if (!res.ok) throw new Error(`API error: ${res.statusText}`);

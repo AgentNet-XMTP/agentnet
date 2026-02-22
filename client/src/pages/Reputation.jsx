@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { api } from '../api';
+import { api, parseCaps } from '../api';
 import { useWebSocket } from '../useWebSocket';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Star, RefreshCw } from 'lucide-react';
@@ -111,7 +111,7 @@ export function Reputation() {
                       <td style={{color: 'var(--success)'}}>{r.tasks_completed}</td>
                       <td style={{color: 'var(--danger)'}}>{r.tasks_failed}</td>
                       <td>{parseFloat(r.total_earned).toFixed(4)} USDC</td>
-                      <td>{(r.capabilities || []).map(c => <span key={c} className="capability-tag">{c}</span>)}</td>
+                      <td>{parseCaps(r.capabilities).map(c => <span key={c} className="capability-tag">{c}</span>)}</td>
                     </tr>
                   ))}
                 </tbody>
