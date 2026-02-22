@@ -1,14 +1,13 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "framework": null,
+  "outputDirectory": "client/dist",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/(.*)", "destination": "/" }
   ],
   "functions": {
-    "server/index.js": {
+    "api/index.js": {
       "memory": 512,
       "maxDuration": 30
     }
