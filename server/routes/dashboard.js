@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../db');
 
-router.get('/overview', async (req, res) => {
+router.get(['/', '/overview'], async (req, res) => {
   try {
     const agents = await pool.query('SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE status = \'active\') as active FROM agents');
     const tasks = await pool.query('SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE status = \'completed\') as completed, COUNT(*) FILTER (WHERE status = \'pending\') as pending, COUNT(*) FILTER (WHERE status = \'in_progress\') as in_progress FROM tasks');

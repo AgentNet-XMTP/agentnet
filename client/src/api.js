@@ -27,7 +27,7 @@ async function patchJSON(path, data) {
 }
 
 export const api = {
-  dashboard: () => fetchJSON('/dashboard/overview'),
+  dashboard: () => fetchJSON('/dashboard'),
   agents: {
     list: (params) => fetchJSON(`/agents?${new URLSearchParams(params || {})}`),
     get: (id) => fetchJSON(`/agents/${id}`),

@@ -40,7 +40,7 @@ router.get('/stats', async (req, res) => {
   try {
     const total = await pool.query('SELECT COUNT(*) as count FROM agents');
     const active = await pool.query("SELECT COUNT(*) as count FROM agents WHERE status = 'active'");
-    const capabilities = await pool.query('SELECT UNNEST(capabilities) as cap, COUNT(*) as count FROM agents GROUP BY cap ORDER BY count DESC LIMIT 10');
+    const capabilities = await pool.query("SELECT TRIM(cap) as cap, COUNT(*) as count FROM agents, UNNEST(string_to_array(TRIM(BOTH '{}' FROM capabilities::text), ',')) as cap WHERE capabilities IS NOT NULL AND capabilities::text != '{}' GROUP BY TRIM(cap) ORDER BY count DESC LIMIT 10");
     res.json({
       total: parseInt(total.rows[0].count),
       active: parseInt(active.rows[0].count),
