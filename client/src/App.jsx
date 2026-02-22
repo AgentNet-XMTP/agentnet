@@ -11,6 +11,7 @@ import { ToastProvider } from './components/Toast';
 import { LayoutDashboard, Bot, ListTodo, Wallet, Star, BookOpen, MessageSquare, ArrowLeft, Activity, Menu, X } from 'lucide-react';
 
 const NAV_ITEMS = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'agents', label: 'Agents', icon: Bot },
   { id: 'tasks', label: 'Tasks', icon: ListTodo },
   { id: 'payments', label: 'Payments', icon: Wallet },
@@ -24,7 +25,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (page === 'landing') {
-    return <Landing onEnter={() => setPage('agents')} />;
+    return <Landing onEnter={() => setPage('dashboard')} />;
   }
 
   const renderPage = () => {
